@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👑 Dashboard — Lucie Quest</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #07050f;
+  color: #e8e0ff;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px 16px;
+}
+.card {
+  background: #110e22;
+  border: 1px solid #1e1840;
+  border-radius: 16px;
+  padding: 40px 36px;
+  max-width: 480px; width: 100%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(0,245,255,0.06);
+}
+.icon { font-size: 3rem; margin-bottom: 16px; }
+h1 {
+  font-size: 1.4rem; font-weight: 800;
+  background: linear-gradient(135deg, #00f5ff, #ff2d9b);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 12px; line-height: 1.3;
+}
+p { color: #7a6fa0; font-size: 0.9rem; line-height: 1.7; margin-bottom: 28px; }
+.btn {
+  display: inline-block;
+  background: #00f5ff;
+  color: #000;
+  font-weight: 800; font-size: 0.9rem;
+  padding: 14px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: box-shadow .2s, transform .1s;
+  box-shadow: 0 0 20px rgba(0,245,255,0.3);
+}
+.btn:hover { box-shadow: 0 0 40px rgba(0,245,255,0.5); transform: translateY(-2px); }
+.note {
+  margin-top: 20px;
+  font-size: 0.72rem; color: #3a3460;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">📊</div>
+  <h1>Tableau de bord<br>Lucie Quest</h1>
+  <p>Les résultats de tes dates sont enregistrés directement dans ton Google Sheet en temps réel.<br><br>Clique ci-dessous pour voir qui a réussi (et surtout qui a échoué 😈)</p>
+  <a class="btn" href="https://docs.google.com/spreadsheets" target="_blank">📋 Ouvrir Google Sheets</a>
+  <div class="note">Pense à mettre ton Google Sheet en favori sur ton téléphone pour y accéder rapidement !</div>
+</div>
+</body>
+</html>
