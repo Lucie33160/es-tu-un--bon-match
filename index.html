@@ -376,6 +376,39 @@ body::after {
 .shake { animation: shake .4s ease; }
 
 /* SCANLINES */
+/* TOAST MESSAGE */
+.toast {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  z-index: 1000;
+  background: #000;
+  border: 3px solid var(--neon-pink);
+  border-radius: 12px;
+  padding: 20px 32px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(0.9rem, 4vw, 1.2rem);
+  font-weight: 900;
+  color: var(--neon-pink);
+  text-shadow: 0 0 20px var(--neon-pink);
+  box-shadow: 0 0 60px rgba(255,45,155,0.6), inset 0 0 30px rgba(255,45,155,0.05);
+  text-align: center;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  max-width: 90vw;
+  pointer-events: none;
+  animation: toastIn .15s ease forwards;
+}
+.toast.out { animation: toastOut .3s ease forwards; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to   { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
 .scanlines {
   position: fixed; inset: 0; z-index: 999; pointer-events: none;
   background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px);
@@ -486,7 +519,7 @@ const questions = [
     icon: "😴",
     choices: ["Non, jamais de la vie !", "Parfois, un tout petit peu...", "Oui, comme une tondeuse", "Je sais pas, je dors 🤷"],
     correct: 0,
-    failMsg: "Éliminé pour ronflements. Lucie a besoin de ses nuits. C'était pourtant simple.",
+    failMsg: "Mauvaise réponse. Lucie a besoin de ses nuits. C'est non négociable.",
     errCode: "ERR_404 · SOMMEIL DE LUCIE INTROUVABLE"
   },
   {
@@ -494,7 +527,7 @@ const questions = [
     icon: "👟",
     choices: ["Non, on les enlève !", "Parfois si j'ai la flemme", "Oui, tout le temps", "Ça dépend du sol 🤔"],
     correct: 0,
-    failMsg: "Éliminé. Les chaussures restent DEHORS. C'est la loi. Ce n'est pas négociable.",
+    failMsg: "Mauvaise réponse. Les chaussures restent DEHORS. C'est la loi.",
     errCode: "ERR_SHOES_DETECTED · VIOLATION DE DOMICILE"
   },
   {
@@ -502,7 +535,7 @@ const questions = [
     icon: "🌾",
     choices: ["OUI, évidemment !", "Mouais, bof...", "Je préfère Koh-Lanta", "Je regarde pas la télé 📵"],
     correct: 0,
-    failMsg: "Éliminé. L'Amour est dans le Pré c'est sacré. Les agriculteurs méritent l'amour. Il n'y a rien à ajouter.",
+    failMsg: "Mauvaise réponse. L'Amour est dans le Pré c'est sacré. Les agriculteurs méritent l'amour.",
     errCode: "ERR_MAUVAIS_GOÛT · INCOMPATIBILITÉ CULTURELLE SÉVÈRE"
   },
   {
@@ -510,7 +543,7 @@ const questions = [
     icon: "🌸",
     choices: ["Très bon, on me le dit souvent", "Plutôt bon je crois", "Moyen, ça dépend des jours", "On me dit rien... 💀"],
     correct: 0,
-    failMsg: "Éliminé. Lucie a un odorat de chien. Elle sent absolument tout et rien ne lui échappe.",
+    failMsg: "Mauvaise réponse. Lucie a un odorat de chien. Elle sent absolument tout.",
     errCode: "ERR_OLFACTIF · SEUIL DE TOLÉRANCE DÉPASSÉ"
   },
   {
@@ -518,7 +551,7 @@ const questions = [
     icon: "🏃",
     choices: ["Une vraie course, respect total !", "C'est limite mais ok...", "Euh c'est de la marche rapide non ?", "Autant rester chez soi 🛋️"],
     correct: 0,
-    failMsg: "Éliminé. Lucie court à 7min30 au km et elle est fière. Les moqueurs ne sont pas les bienvenus ici.",
+    failMsg: "Mauvaise réponse. Lucie court à 7min30 au km et elle est fière. Les moqueurs ne sont pas les bienvenus.",
     errCode: "ERR_RUNNING · MANQUE DE RESPECT CARACTÉRISÉ"
   },
   {
@@ -526,7 +559,7 @@ const questions = [
     icon: "🩷",
     choices: ["C'est magnifique, j'adore !", "C'est original...", "On pourrait peut-être repeindre ?", "Non. 💀"],
     correct: 0,
-    failMsg: "Éliminé. La cuisine est rose et elle le restera. C'est une décision définitive et non négociable.",
+    failMsg: "Mauvaise réponse. La cuisine est rose et elle le restera. C'est définitif.",
     errCode: "ERR_DESIGN · REMISE EN QUESTION NON AUTORISÉE"
   }
 ];
@@ -534,16 +567,40 @@ const questions = [
 const MAX_LIVES = 3;
 let currentQ = 0;
 let lives = MAX_LIVES;
+let answerLog = [];
 let errors = 0;
 let playerName = '';
 
 function saveResult(name, score) {
-  const label = score === 100 ? 'PARFAIT' : score >= 80 ? '80%' : score >= 60 ? '60%' : 'GAME OVER';
+  const label = score === 100 ? 'PARFAIT' : score >= 75 ? 'BIEN' : score >= 50 ? 'PASSABLE' : 'GAME OVER';
   fetch(SHEET_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, result: label, score, date: new Date().toLocaleString('fr-FR') })
+    body: JSON.stringify({
+      name,
+      result: label,
+      score,
+      date: new Date().toLocaleString('fr-FR'),
+      answers: answerLog
+    })
   }).catch(() => {});
+}
+
+function showToast(msg) {
+  // Remove existing toast
+  const existing = document.getElementById('toast');
+  if (existing) existing.remove();
+
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.id = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+
+  setTimeout(() => {
+    t.classList.add('out');
+    setTimeout(() => t.remove(), 300);
+  }, 1500);
 }
 
 function renderHearts() {
@@ -572,7 +629,7 @@ function startQuiz() {
     input.placeholder = 'Ton prénom quand même... 🙃';
     input.focus(); return;
   }
-  currentQ = 0; lives = MAX_LIVES; errors = 0;
+  currentQ = 0; lives = MAX_LIVES; errors = 0; answerLog = [];
   showScreen('screen-quiz');
   renderQuestion();
 }
@@ -591,7 +648,16 @@ function renderQuestion() {
 
   const choicesEl = document.getElementById('choices');
   choicesEl.innerHTML = '';
-  ['A','B','C','D'].forEach((letter, i) => {
+
+  // Shuffle choices but keep track of correct answer
+  const indices = [0, 1, 2, 3];
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+
+  ['A','B','C','D'].forEach((letter, pos) => {
+    const i = indices[pos];
     const btn = document.createElement('button');
     btn.className = 'choice';
     btn.innerHTML = `<span class="choice-letter">${letter}</span><span class="choice-text">${q.choices[i]}</span>`;
@@ -606,6 +672,7 @@ function handleAnswer(index, btn) {
 
   if (index === q.correct) {
     btn.classList.add('correct');
+    answerLog.push({ question: q.text, answer: q.choices[index], correct: true });
     setTimeout(() => {
       currentQ++;
       if (currentQ >= questions.length) {
@@ -619,14 +686,16 @@ function handleAnswer(index, btn) {
     }, 650);
   } else {
     btn.classList.add('wrong');
+    answerLog.push({ question: q.text, answer: q.choices[index], correct: false });
     lives--;
     errors++;
-    // Flash rouge + cœur qui explose
+    // Flash rouge + cœur qui explose + toast
     const flash = document.createElement('div');
     flash.className = 'loss-flash';
     document.body.appendChild(flash);
     setTimeout(() => flash.remove(), 500);
     animateHeartLoss();
+    showToast(q.failMsg);
     document.getElementById('screen-quiz').classList.add('shake');
     setTimeout(() => {
       document.getElementById('screen-quiz').classList.remove('shake');
@@ -650,13 +719,8 @@ function handleAnswer(index, btn) {
 }
 
 function showGameOver(msg, err) {
-  const intros = [
-    `<span class="pname">${playerName}</span>, on ne peut pas dire que tu n'as pas été prévenu. `,
-    `Cher <span class="pname">${playerName}</span>, le jury a délibéré en 0.3 secondes. `,
-    `<span class="pname">${playerName}</span>, c'était courageux d'essayer. Vraiment. `
-  ];
-  document.getElementById('go-msg').innerHTML = intros[currentQ % intros.length] + msg;
-  document.getElementById('go-err').textContent = err;
+  document.getElementById('go-msg').innerHTML = `Cher <span class="pname">${playerName}</span>, tu as été éliminé. Il semblerait que nous ne soyons pas compatibles.`;
+  document.getElementById('go-err').textContent = "DOSSIER REFUSÉ";
   showScreen('screen-gameover');
 }
 
@@ -749,7 +813,7 @@ function showScreen(id) {
 }
 
 function restart() {
-  currentQ = 0; lives = MAX_LIVES; errors = 0; playerName = ''; renderHearts();
+  currentQ = 0; lives = MAX_LIVES; errors = 0; answerLog = []; playerName = ''; renderHearts();
   document.getElementById('player-name').value = '';
   showScreen('screen-intro');
 }
