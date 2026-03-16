@@ -511,7 +511,7 @@ body::after {
 </div>
 
 <script>
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyL6k9e0O0rFpf-1BtEzwo6oIhganbZ7IHdYsX_kXPtk5DB30imK9QYACuEHCVWFMUlbQ/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyi7vclcfM9ww84eLsnFX2eW3iVTrzD2RWwiV02wo8eZ5X49thno12uglQwxmh48aAsOg/exec';
 
 const questions = [
   {
@@ -660,6 +660,7 @@ function renderQuestion() {
     const i = indices[pos];
     const btn = document.createElement('button');
     btn.className = 'choice';
+    btn.dataset.text = q.choices[i];
     btn.innerHTML = `<span class="choice-letter">${letter}</span><span class="choice-text">${q.choices[i]}</span>`;
     btn.onclick = () => handleAnswer(i, btn);
     choicesEl.appendChild(btn);
@@ -672,7 +673,7 @@ function handleAnswer(index, btn) {
 
   if (index === q.correct) {
     btn.classList.add('correct');
-    answerLog.push({ question: q.text, answer: q.choices[index], correct: true });
+    answerLog.push({ question: q.text, answer: btn.dataset.text, correct: true });
     setTimeout(() => {
       currentQ++;
       if (currentQ >= questions.length) {
@@ -686,7 +687,7 @@ function handleAnswer(index, btn) {
     }, 650);
   } else {
     btn.classList.add('wrong');
-    answerLog.push({ question: q.text, answer: q.choices[index], correct: false });
+    answerLog.push({ question: q.text, answer: btn.dataset.text, correct: false });
     lives--;
     errors++;
     // Flash rouge + cœur qui explose + toast
